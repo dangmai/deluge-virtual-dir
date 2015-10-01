@@ -1,0 +1,2 @@
+deluge-client==1.0.2
+wheel==0.24.0
