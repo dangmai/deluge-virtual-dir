@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-from deluge_client import DelugeRPCClient
 import argparse
+import errno
 import os
 import os.path
+from deluge_client import DelugeRPCClient
 
 
 def is_valid_host(parser, host_str):
@@ -96,7 +97,14 @@ def main():
                     torrent[b'name'].decode('utf-8')
                 )
                 if not os.path.exists(link_from):
-                    os.symlink(link_to, link_from)
+                    try:
+                        os.symlink(link_to, link_from)
+                    except OSError as error:
+                        if error.errno == errno.EEXIST:
+                            os.remove(link_from)
+                            os.symlink(link_to, link_from)
+                        else:
+                            raise error
 
 
 if __name__ == '__main__':
