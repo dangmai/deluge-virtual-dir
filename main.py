@@ -66,15 +66,16 @@ def main():
     tracker_map = {}
     clients = []
 
-    for entry in listdir_fullpath(args.dir):
-        recursive_rm_dir(entry)
-
     for host in args.hosts:
         client = DelugeRPCClient(*host)
         client.connect()
 
         clients.append(client)
 
+    for entry in listdir_fullpath(args.dir):
+        recursive_rm_dir(entry)
+
+    for client in clients:
         torrents = client.call(
             'core.get_torrents_status',
             {},
