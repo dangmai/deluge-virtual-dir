@@ -34,18 +34,15 @@ def listdir_fullpath(loc):
     return [os.path.join(loc, f) for f in os.listdir(loc)]
 
 
-def recursive_rm_dir(path):
+def recursive_rm_broken_symlinks(path):
     """
-    Remove a directory that contains symlink in it
+    Remove broken symlinks inside a directory
     """
     if not os.path.isdir(path):
         return
     for entry in listdir_fullpath(path):
-        if os.path.islink(entry):
+        if os.path.islink(entry) and not os.path.exists(entry):
             os.unlink(entry)
-    if not os.listdir(path):
-        os.rmdir(path)
-
 
 
 def main():
@@ -71,9 +68,6 @@ def main():
         client.connect()
 
         clients.append(client)
-
-    for entry in listdir_fullpath(args.dir):
-        recursive_rm_dir(entry)
 
     for client in clients:
         torrents = client.call(
@@ -106,6 +100,10 @@ def main():
                             os.symlink(link_to, link_from)
                         else:
                             raise error
+
+    # Clean up
+    for entry in listdir_fullpath(args.dir):
+        recursive_rm_broken_symlinks(entry)
 
 
 if __name__ == '__main__':
